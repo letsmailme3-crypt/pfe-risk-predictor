@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -428,5 +427,3 @@ with tab3:
         
     st.markdown("---")
     st.info("💡 **Conseil pour Naoufel le jour J :** Si le jury pose une question sur la territorialité des données, rappelez-leur que ce modèle sert de démonstrateur technologique et qu'il est immédiatement transposable sur des données macroéconomiques marocaines en remplaçant simplement le fichier d'entraînement `.pkl`.")
-
-```
