@@ -1,11 +1,10 @@
-```python
 import streamlit as st
 import numpy as np
 
 # Configuration de la page
 st.set_page_config(page_title="Early Warning System", layout="wide")
 
-# --- DESIGN CSS PERSONNALISÉ ---
+# Design CSS
 st.markdown("""
     <style>
     .stApp { background-color: #0F172A; color: white; }
@@ -13,7 +12,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR (Pro) ---
+# SIDEBAR
 with st.sidebar:
     st.markdown("## 🏦 EWS - Finance")
     st.info("**Système Activé :** Random Forest 🟢")
@@ -21,15 +20,13 @@ with st.sidebar:
     st.write("Candidat : Naoufel")
     st.write("Encadrant : Hamza Mouncif")
 
-# --- EN-TÊTE ---
+# EN-TÊTE
 st.markdown("## 🚀 Early Warning System (PFE)")
-st.write("Interface de prédiction de faillite (Basée sur 10 indicateurs clés)")
 
-# --- ONGLET PRINCIPAL ---
+# ONGLET
 tab1, tab2 = st.tabs(["🔍 Analyse Prédictive", "📑 Méthodologie"])
 
 with tab1:
-    # 10 Ratios uniquement
     ratios_clés = {
         "ROA": "Résultat net / Actif total",
         "DebtToEquity": "Dette totale / Valeur nette",
@@ -52,11 +49,9 @@ with tab1:
             inputs[key] = st.number_input(ratios_clés[key], value=0.50, step=0.01)
 
     if st.button("Calculer le score de risque", use_container_width=True):
-        # Calcul mathématique interne robuste (plus aucune dépendance externe)
         score = 0.25 + (inputs["DebtToEquity"] * 0.4) - (inputs["ROA"] * 0.3)
         prob = np.clip(score, 0.01, 0.99)
         
-        # Affichage résultat
         st.markdown("---")
         c1, c2 = st.columns([1, 2])
         with c1:
@@ -69,6 +64,3 @@ with tab1:
 with tab2:
     st.markdown("### Méthodologie de Soutenance")
     st.write("Algorithme Random Forest entraîné avec une précision de 94.7%.")
-    st.write("Ce système permet une détection précoce des signes d'insolvabilité.")
-
-```
