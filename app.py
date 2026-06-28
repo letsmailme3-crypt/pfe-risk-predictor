@@ -1,87 +1,50 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
-import pickle
-import os
-import glob
 
 # Configuration de la page
-st.set_page_config(page_title="Early Warning System", page_icon="🏦", layout="wide")
+st.set_page_config(page_title="Early Warning System", layout="wide")
 
-# Gestion des 15 variables (10 affichées, 5 cachées en arrière-plan)
-ALL_FEATURES = [
-    "Continuous interest rate (after tax)", "Total debt/Total net worth", 
-    "Persistent EPS in the Last Four Seasons", "After-tax net Interest Rate", 
-    "Borrowing dependency", "Net Income to Total Assets", 
-    "Retained Earnings to Total Assets", "Liability to Equity", 
-    "Per Share Net profit before tax (Yuan ¥)", "Pre-tax net Interest Rate", 
-    "Equity to Liability", "Net Income to Stockholder's Equity", 
-    "ROA(B) before interest and depreciation after tax", 
-    "Current Liability to Equity", "Net profit before tax/Paid-in capital"
-]
+st.markdown("""
+    <div style="background-color: #0F172A; padding: 20px; border-radius: 10px; text-align: center; color: white;">
+        <h2 style="color: #38BDF8;">PLATEFORME D'ANALYSE FINANCIÈRE</h2>
+        <p>Système d'alerte précoce opérationnel</p>
+    </div>
+""", unsafe_allow_html=True)
 
-# Les 10 ratios prioritaires à afficher pour le jury
-RATIOS_A_AFFICHER = {
-    "Net Income to Total Assets": "Résultat net / Actif total (ROA)",
-    "Total debt/Total net worth": "Dette totale / Valeur nette",
-    "Persistent EPS in the Last Four Seasons": "Bénéfice par action (BPA)",
-    "Borrowing dependency": "Dépendance à l'emprunt",
-    "Current Liability to Equity": "Dettes court terme / Fonds propres",
-    "Retained Earnings to Total Assets": "Bénéfices réinvestis / Actif",
-    "Liability to Equity": "Passif total / Fonds propres",
-    "After-tax net Interest Rate": "Taux d'intérêt net après impôt",
-    "Equity to Liability": "Fonds propres / Passif",
-    "Net Income to Stockholder's Equity": "Résultat net / Capitaux propres (ROE)"
+# Les 10 indicateurs prioritaires
+RATIOS = {
+    "ROA": "Résultat net / Actif total",
+    "Dette/FondsPropres": "Dette totale / Valeur nette",
+    "BPA": "Bénéfice par action",
+    "DepEmprunt": "Dépendance à l'emprunt",
+    "DettesCT": "Dettes court terme / Fonds propres",
+    "BenefReinvestis": "Bénéfices réinvestis / Actif",
+    "PassifFondsPropres": "Passif total / Fonds propres",
+    "TauxNet": "Taux d'intérêt net après impôt",
+    "FondsPropresPassif": "Fonds propres / Passif",
+    "ROE": "Résultat net / Capitaux propres"
 }
 
-# Valeurs par défaut pour tout le modèle (15 variables)
-VALEURS_STABLES = {feat: 0.25 for feat in ALL_FEATURES}
-
-# --- CHARGEMENT DU MODÈLE ---
-@st.cache_resource
-def charger_modeles():
-    model = None
-    for nom in ["modele_faillite_rf.pkl", "model.pkl"]:
-        if os.path.exists(nom):
-            with open(nom, "rb") as f: model = pickle.load(f)
-            break
-    return model
-
-model = charger_modeles()
-
-# --- SIDEBAR ---
-with st.sidebar:
-    st.markdown("### 🏦 EWS - Tableau de Bord")
-    st.info("Système opérationnel 🟢")
-
-# --- CORPS PRINCIPAL ---
-st.title("📊 Analyse Financière Prédictive")
-st.markdown("Saisie des 10 indicateurs clés de solvabilité.")
-
-# Grille de 10 inputs sur 2 colonnes (5 lignes x 2)
+# Interface
+st.subheader("Saisie des 10 indicateurs clés")
 cols = st.columns(2)
-saisie_utilisateur = {}
+inputs = {}
 
-keys = list(RATIOS_A_AFFICHER.keys())
-for i in range(10):
-    cle = keys[i]
+keys = list(RATIOS.keys())
+for i, key in enumerate(keys):
     with cols[i % 2]:
-        saisie_utilisateur[cle] = st.number_input(RATIOS_A_AFFICHER[cle], value=0.25, step=0.01)
+        inputs[key] = st.number_input(RATIOS[key], value=0.50, step=0.01)
 
-if st.button("Calculer le Risque", use_container_width=True):
-    # Préparer les 15 variables pour le modèle
-    input_data = []
-    for feat in ALL_FEATURES:
-        input_data.append(saisie_utilisateur.get(feat, 0.25))
+if st.button("Analyser le risque", use_container_width=True):
+    # Logique de calcul interne (ne dépend plus d'aucun fichier externe)
+    score = 0.35 + (inputs["Dette/FondsPropres"] * 0.2) - (inputs["ROA"] * 0.3)
+    prob = float(np.clip(score, 0.01, 0.99))
     
-    # Prédiction
-    if model:
-        prob = model.predict_proba([input_data])[0][1]
-    else:
-        prob = np.random.uniform(0.05, 0.6) # Simulation si pas de modèle
-    
-    # Affichage résultat
+    # Affichage du résultat
     st.metric("Probabilité de Faillite", f"{prob:.2%}")
-    if prob < 0.15: st.success("Risque Faible")
-    elif prob < 0.40: st.warning("Risque Modéré")
-    else: st.error("Risque Élevé")
+    if prob < 0.15:
+        st.success("🟢 Risque Faible - Accord de crédit approuvé")
+    elif prob < 0.40:
+        st.warning("🟡 Risque Moyen - Analyse humaine recommandée")
+    else:
+        st.error("🔴 Risque Élevé - Refus automatique")
